@@ -1,8 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
-from test_task_app.forms import UrlForm
-import pandas
+from test_task_app.forms import UrlForm, LoginForm, RegisterForm
 import csv
 import requests
 
@@ -24,3 +23,17 @@ class CsvView(View):
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             my_list = list(cr)
             return HttpResponse(f"{my_list[0]}")
+
+
+def index(request):
+    return render(request, "index.html")
+
+
+def login(request):
+    login_form = LoginForm()
+    return render(request, "login.html", {"form": login_form})
+
+
+def register(request):
+    register_form = RegisterForm()
+    return render(request, "register.html", {"form": register_form})

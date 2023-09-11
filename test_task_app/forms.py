@@ -1,7 +1,35 @@
-from django.forms import Form
-from django.forms import fields
+from django import forms
 
-class UrlForm(Form):
-    url = fields.URLField(label="dataset url",
-                          help_text="Введите url-адрес необходимого csv-файла",
-                          required=True)
+
+class UrlForm(forms.Form):
+    url = forms.URLField(label="dataset url",
+                         help_text="Введите url-адрес необходимого csv-файла",
+                         required=True)
+
+
+class LoginForm(forms.Form):
+    login = forms.CharField(label="Логин",
+                            help_text="Введите логин",
+                            required=True)
+    password = forms.CharField(label="Пароль",
+                               help_text="Введите пароль",
+                               required=True,
+                               widget=forms.PasswordInput)
+
+
+class RegisterForm(forms.Form):
+    login = forms.CharField(label="Логин",
+                            help_text="Введите логин",
+                            required=True)
+    password = forms.CharField(label="Пароль",
+                               help_text="Введите пароль",
+                               required=True,
+                               widget=forms.PasswordInput)
+    password_again = forms.CharField(label="Пароль",
+                                     help_text="Повторите пароль",
+                                     required=True,
+                                     widget=forms.PasswordInput)
+    email = forms.EmailField(label="Электронная почта",
+                             help_text="Введите электронную почту",
+                             required=True,
+                             )
