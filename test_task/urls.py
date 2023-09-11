@@ -5,5 +5,5 @@ urlpatterns = [
     path('index', views.CsvView.as_view()),
     path('', views.index),
     path('login', views.login),
-    path('register', views.register)
+    path('register', views.RegisterView.as_view())
 ]
