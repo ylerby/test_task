@@ -7,6 +7,7 @@ class UrlForm(forms.Form):
                          required=True)
 
 
+#todo: сделать валидацию всех полей в соответствии с бд
 class LoginForm(forms.Form):
     login = forms.CharField(label="Логин",
                             help_text="Введите логин",
