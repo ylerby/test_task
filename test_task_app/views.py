@@ -6,7 +6,7 @@ from test_task_app.forms import UrlForm, LoginForm, RegisterForm
 import csv
 import requests
 
-from test_task_app.models import User, CSVFiles, CSVColumns
+from test_task_app.models import User, CSVFiles
 
 
 class CsvView(View):
@@ -34,7 +34,7 @@ class CsvView(View):
                 return HttpResponse("<h1>Файл с такими данными уже существует<h1>")
 
             csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
-            CSVColumns.objects.create(file_id=csv_file.id, column_name=column_names)
+            #CSVColumns.objects.create(file_id=csv_file.id, column_name=column_names)
 
             split_column_name = column_names.split(",")
             return HttpResponse(f"<h1>{name}<h1>"
