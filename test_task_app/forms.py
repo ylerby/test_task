@@ -5,6 +5,9 @@ class UrlForm(forms.Form):
     url = forms.URLField(label="dataset url",
                          help_text="Введите url-адрес необходимого csv-файла",
                          required=True)
+    name = forms.CharField(label="Название файла",
+                           help_text="Введите название файла, для дальнейшего поиска",
+                           required=True)
 
 
 #todo: сделать валидацию всех полей в соответствии с бд

@@ -6,7 +6,7 @@ from test_task_app.forms import UrlForm, LoginForm, RegisterForm
 import csv
 import requests
 
-from test_task_app.models import User
+from test_task_app.models import User, CSVFiles, CSVColumns
 
 
 class CsvView(View):
@@ -17,7 +17,9 @@ class CsvView(View):
 
     @staticmethod
     def post(request):
-        url = request.POST.get("url", None)
+        url: str = request.POST.get("url", None)
+        name: str = request.POST.get("name", None)
+
         with requests.Session() as s:
             download = s.get(url)
 
@@ -25,7 +27,15 @@ class CsvView(View):
 
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             my_list = list(cr)
-            return HttpResponse(f"{my_list[0]}")
+
+            column_names = ",".join(my_list[0])
+
+            csv_file = CSVFiles.objects.create(file_name=name)
+            CSVColumns.objects.create(file_id=csv_file.id, column_name=column_names)
+
+            split_column_name = column_names.split(",")
+            return HttpResponse(f"<h1>{name}<h1>"
+                                f"{split_column_name}")
 
 
 def index(request):
