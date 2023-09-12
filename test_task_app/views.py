@@ -30,7 +30,10 @@ class CsvView(View):
 
             column_names = ",".join(my_list[0])
 
-            csv_file = CSVFiles.objects.create(file_name=name)
+            if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
+                return HttpResponse("<h1>Файл с такими данными уже существует<h1>")
+
+            csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
             CSVColumns.objects.create(file_id=csv_file.id, column_name=column_names)
 
             split_column_name = column_names.split(",")
