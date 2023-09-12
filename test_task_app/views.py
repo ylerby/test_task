@@ -21,8 +21,12 @@ class CsvView(View):
         name: str = request.POST.get("name", None)
 
         with requests.Session() as s:
-            download = s.get(url)
 
+            #todo: решить проблему с несуществующим файлом по некорректному url
+            try:
+                download = s.get(url)
+            except ConnectionError as e:
+                return HttpResponse(f"<h1>Ошибка получения файла!")
             decoded_content = download.content.decode('utf-8')
 
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
