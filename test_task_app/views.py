@@ -83,3 +83,7 @@ class RegisterView(View):
             return HttpResponse("<h1>Пользователь с такими данными уже зарегистрирован<h1>")
         User.objects.create(login=login, password=password, email=email)
         return HttpResponsePermanentRedirect('/login')
+
+
+def main_page(request):
+    return render(request, "main_page.html")
