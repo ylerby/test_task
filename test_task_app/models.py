@@ -13,6 +13,11 @@ class CSVFiles(models.Model):
     file_column_name = models.CharField(max_length=255)
 
 
+class CSVData(models.Model):
+    column_id = models.ForeignKey(CSVFiles, on_delete=models.CASCADE)
+    column_data = models.CharField(max_length=255)
+
+
 '''class CSVFileInfo(models.Model):
     column_id = models.IntegerField()
 '''

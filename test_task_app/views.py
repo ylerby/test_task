@@ -6,7 +6,7 @@ from test_task_app.forms import UrlForm, LoginForm, RegisterForm
 import csv
 import requests
 
-from test_task_app.models import User, CSVFiles
+from test_task_app.models import User, CSVFiles, CSVData
 
 
 class CsvView(View):
@@ -19,30 +19,28 @@ class CsvView(View):
     def post(request):
         url: str = request.POST.get("url", None)
         name: str = request.POST.get("name", None)
-
         with requests.Session() as s:
-
-            #todo: решить проблему с несуществующим файлом по некорректному url
             try:
                 download = s.get(url)
-            except ConnectionError as e:
+            except ConnectionError:
                 return HttpResponse(f"<h1>Ошибка получения файла!")
             decoded_content = download.content.decode('utf-8')
-
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             my_list = list(cr)
-
             column_names = ",".join(my_list[0])
+
+            CSVFiles.objects.all().delete()
 
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return HttpResponse("<h1>Файл с такими данными уже существует<h1>")
 
             csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
-            #CSVColumns.objects.create(file_id=csv_file.id, column_name=column_names)
+            for i, column in enumerate(my_list):
+                CSVData.objects.create(column_id=csv_file, column_data=",".join(column), id=i + 1)
 
             split_column_name = column_names.split(",")
-            return HttpResponse(f"<h1>{name}<h1>"
-                                f"{split_column_name}")
+
+            return HttpResponse(f"<h1>{name}<h1>{split_column_name}")
 
 
 def index(request):
@@ -79,8 +77,8 @@ class RegisterView(View):
         login = request.POST.get("login", None)
         password = request.POST.get("password", None)
 
-        #todo:решить проблему с повторяющимися паролями
-        #again_password = request.POST.get("again_password", None)
+        # todo:решить проблему с повторяющимися паролями
+        # again_password = request.POST.get("again_password", None)
         email = request.POST.get("email", None)
 
         if User.objects.filter(Q(login=login) | Q(email=email)).exists():
