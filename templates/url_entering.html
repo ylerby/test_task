@@ -4,6 +4,14 @@
     <meta charset="utf-8" />
     <title>Ввод адреса</title>
     <style>
+        .buttn {
+            display: inline-block;
+            background: #472486;
+            color: #ffffff;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            border-radius: 3px;
+        }
         body {
             background-color: #f1f1f1;
             font-family: Arial, sans-serif;
@@ -37,6 +45,9 @@
         }
     </style>
 </head>
+<div>
+    <a href="/" class="buttn">Главная</a>
+</div>
 <body>
     <form method="post">
         {% csrf_token %}
