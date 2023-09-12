@@ -1,8 +1,8 @@
-from django.http import HttpResponse
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.views import View
 from test_task_app.forms import UrlForm, LoginForm, RegisterForm
-from django.http.response import HttpResponseNotAllowed
 import csv
 import requests
 
@@ -32,9 +32,23 @@ def index(request):
     return render(request, "index.html")
 
 
-def login(request):
-    login_form = LoginForm()
-    return render(request, "login.html", {"form": login_form})
+class LoginView(View):
+    @staticmethod
+    def get(request):
+        login_form = LoginForm()
+        return render(request, "login.html", {"form": login_form})
+
+    @staticmethod
+    def post(request):
+        login: str = request.POST.get("login", None)
+        password: str = request.POST.get("password", None)
+
+        try:
+            users = User.objects.get(login=login, password=password)
+            print(users.login, users.email, users.email)
+        except User.DoesNotExist:
+            return HttpResponse(f"<h1>Авторизация не пройдена <h1>")
+        return HttpResponsePermanentRedirect("/index")
 
 
 class RegisterView(View):
@@ -45,17 +59,14 @@ class RegisterView(View):
 
     @staticmethod
     def post(request):
-        login: str = request.POST.get("login", None)
-        password: str = request.POST.get("password", None)
-        again_password: str = request.POST.get("again_password", None)
-        email: str = request.POST.get("email", None)
+        login = request.POST.get("login", None)
+        password = request.POST.get("password", None)
 
-        #todo: сделать проверку на повторяющийся пароль, сделать проверку на наличие почты, пароля, логина в бд
-        #todo: сделать страницу ошибки, в случае невалидных данных
-        if (len(list(filter(lambda x: x is not None, [login, password, again_password, email])))
-                == len([login, password, again_password, email])):
-            if password == again_password:
-                User.objects.create(login=login, password=password, email=email)
-            else:
-                raise HttpResponseNotAllowed
-        return HttpResponse("<h1>Создан пользователь<h1>")
+        #todo:решить проблему с повторяющимися паролями
+        #again_password = request.POST.get("again_password", None)
+        email = request.POST.get("email", None)
+
+        if User.objects.filter(Q(login=login) | Q(email=email)).exists():
+            return HttpResponse("<h1>Пользователь с такими данными уже зарегистрирован<h1>")
+        User.objects.create(login=login, password=password, email=email)
+        return HttpResponsePermanentRedirect('/login')

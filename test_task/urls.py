@@ -4,6 +4,6 @@ from test_task_app import views
 urlpatterns = [
     path('index', views.CsvView.as_view()),
     path('', views.index),
-    path('login', views.login),
+    path('login', views.LoginView.as_view()),
     path('register', views.RegisterView.as_view())
 ]

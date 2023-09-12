@@ -5,3 +5,12 @@ class User(models.Model):
     login = models.CharField()
     password = models.CharField()
     email = models.EmailField()
+
+
+class CSVFiles(models.Model):
+    file_name = models.CharField(max_length=255)
+
+
+class CSVColumns(models.Model):
+    file = models.ForeignKey(CSVFiles, on_delete=models.CASCADE)
+    column_name = models.CharField(max_length=255)
