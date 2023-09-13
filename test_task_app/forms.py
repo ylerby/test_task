@@ -37,3 +37,15 @@ class RegisterForm(forms.Form):
                              help_text="Введите электронную почту",
                              required=True,
                              )
+
+
+class DeleteCsvForm(forms.Form):
+    file_name = forms.CharField(label="Название файла",
+                                help_text="Введите название файла, подлежащего удалению",
+                                required=True)
+
+
+class GetCsvForm(forms.Form):
+    file_name = forms.CharField(label="Название файла",
+                                help_text="Введите название файла, который необходимо получить",
+                                required=True)

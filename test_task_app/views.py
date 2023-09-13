@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.views import View
-from test_task_app.forms import UrlForm, LoginForm, RegisterForm
+from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm
 import csv
 import requests
 
@@ -34,13 +34,46 @@ class CsvView(View):
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return HttpResponse("<h1>Файл с такими данными уже существует<h1>")
 
-            csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
-            for i, column in enumerate(my_list):
+            csv_file = CSVFiles.objects.create(file_name=name, file_url=url, file_column_name=my_list[0])
+            for i, column in enumerate(my_list[1:]):
                 CSVData.objects.create(column_id=csv_file, column_data=",".join(column), id=i + 1)
 
             split_column_name = column_names.split(",")
 
             return HttpResponse(f"<h1>{name}<h1>{split_column_name}")
+
+
+class GetCsvView(View):
+    @staticmethod
+    def get(request):
+        get_csv_form = GetCsvForm()
+        return render(request, "get_csv_file.html", {"form": get_csv_form})
+
+    # todo: заменить column_id на csv_file id
+    @staticmethod
+    def post(request):
+        csv_file_name: str = request.POST.get("file_name", None)
+
+        try:
+            current_file = CSVFiles.objects.get(file_name=csv_file_name)
+            current_file_data = CSVData.objects.filter(column_id=current_file)
+        except:
+            return HttpResponse("<h1>Файла с таким названием не существует<h1>")
+
+        print(current_file.file_name, current_file.file_column_name, current_file.file_url)
+        for i in current_file_data:
+            print(i.column_data)
+        return HttpResponse("<h1>PASS<h1>")
+
+
+class DeleteCsvView(View):
+    @staticmethod
+    def get(reqeust):
+        pass
+
+    @staticmethod
+    def post(request):
+        pass
 
 
 def index(request):
