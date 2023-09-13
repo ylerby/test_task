@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.views import View
-from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm
+from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, DeleteCsvForm
 import csv
 import requests
 
@@ -29,10 +29,10 @@ class CsvView(View):
             my_list = list(cr)
             column_names = ",".join(my_list[0])
 
-            CSVFiles.objects.all().delete()
+            # fixme: CSVFiles.objects.all().delete()
 
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
-                return HttpResponse("<h1>Файл с такими данными уже существует<h1>")
+                return render(request, "already_exist.html")
 
             csv_file = CSVFiles.objects.create(file_name=name, file_url=url, file_column_name=my_list[0])
             for i, column in enumerate(my_list[1:]):
@@ -50,6 +50,7 @@ class GetCsvView(View):
         return render(request, "get_csv_file.html", {"form": get_csv_form})
 
     # todo: заменить column_id на csv_file id
+    # todo: сделать сортировку полей !!!
     @staticmethod
     def post(request):
         csv_file_name: str = request.POST.get("file_name", None)
@@ -58,7 +59,7 @@ class GetCsvView(View):
             current_file = CSVFiles.objects.get(file_name=csv_file_name)
             current_file_data = CSVData.objects.filter(column_id=current_file)
         except:
-            return HttpResponse("<h1>Файла с таким названием не существует<h1>")
+            return render(request, "file_not_found.html")
 
         print(current_file.file_name, current_file.file_column_name, current_file.file_url)
         for i in current_file_data:
@@ -69,11 +70,19 @@ class GetCsvView(View):
 class DeleteCsvView(View):
     @staticmethod
     def get(reqeust):
-        pass
+        delete_csv_form = DeleteCsvForm()
+        return render(reqeust, "delete_csv_file.html", {"form": delete_csv_form})
 
     @staticmethod
     def post(request):
-        pass
+        csv_file_name: str = request.POST.get("file_name", None)
+
+        try:
+            current_file = CSVFiles.objects.get(file_name=csv_file_name).delete()
+            CSVData.objects.filter(column_id=current_file).delete()
+            return render(request, "successful_delete.html")
+        except:
+            return render(request, "file_not_found.html")
 
 
 def index(request):
@@ -95,7 +104,7 @@ class LoginView(View):
             users = User.objects.get(login=login, password=password)
             print(users.login, users.email, users.email)
         except User.DoesNotExist:
-            return HttpResponse(f"<h1>Авторизация не пройдена <h1>")
+            return render(request, "authorization_fail.html")
         return HttpResponsePermanentRedirect("/index")
 
 
@@ -115,7 +124,7 @@ class RegisterView(View):
         email = request.POST.get("email", None)
 
         if User.objects.filter(Q(login=login) | Q(email=email)).exists():
-            return HttpResponse("<h1>Пользователь с такими данными уже зарегистрирован<h1>")
+            return render(request, "registration_fail.html")
         User.objects.create(login=login, password=password, email=email)
         return HttpResponsePermanentRedirect('/login')
 
