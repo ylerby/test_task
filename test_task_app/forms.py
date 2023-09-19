@@ -49,3 +49,10 @@ class GetCsvForm(forms.Form):
     file_name = forms.CharField(label="Название файла",
                                 help_text="Введите название файла, который необходимо получить",
                                 required=True)
+
+
+class FileSortingForm(forms.Form):
+    column_id = forms.IntegerField(label="Номер столбца таблицы",
+                                   help_text=f"Введите номер столбца",
+                                   required=True,
+                                   min_value=0)

@@ -1,16 +1,17 @@
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views import View
-from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, DeleteCsvForm
+from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, DeleteCsvForm, FileSortingForm
+from test_task_app.models import CSVFiles, CSVData
 import csv
 import requests
 
-from test_task_app.models import CSVFiles, CSVData
-
 
 class CsvView(View):
+    """Класс-представление для скачивания csv-файла"""
+
     @staticmethod
     def get(request):
         url_form = UrlForm()
@@ -44,6 +45,8 @@ class CsvView(View):
 
 
 class GetCsvView(View):
+    """Класс-представление для получения csv-файла"""
+
     @staticmethod
     def get(request):
         get_csv_form = GetCsvForm()
@@ -69,6 +72,8 @@ class GetCsvView(View):
 
 
 class DeleteCsvView(View):
+    """Класс-представление для удаления csv-файла"""
+
     @staticmethod
     def get(reqeust):
         delete_csv_form = DeleteCsvForm()
@@ -91,6 +96,8 @@ def index(request):
 
 
 class LoginView(View):
+    """Класс-представление для авторизации"""
+
     @staticmethod
     def get(request):
         login_form = LoginForm()
@@ -110,6 +117,8 @@ class LoginView(View):
 
 
 class RegisterView(View):
+    """Класс-представление для регистрации"""
+
     @staticmethod
     def get(request):
         register_form = RegisterForm()
@@ -131,5 +140,33 @@ class RegisterView(View):
         return HttpResponseRedirect('/login')
 
 
+class FileSorting(View):
+    """Класс-представление для """
+
+    @staticmethod
+    def get(request) -> HttpResponse:
+        file_sorting_form = FileSortingForm()
+
+        # todo: сделать получение url-параметра
+        current_file_name = request.GET.get("file_name")
+        current_file = CSVFiles.objects.get(file_name=current_file_name)
+        number_of_columns = len(current_file.file_column_name.split(sep=',')) - 1
+        return render(request, "file_sorting.html", {"form": file_sorting_form,
+                                                     "number_of_columns": number_of_columns})
+
+    @staticmethod
+    def post(request):
+        column_id = int(request.POST.get("column_id", None))
+        current_file_name = request.GET.get("file_name")
+        current_file = CSVFiles.objects.get(file_name=current_file_name)
+        current_file_data = CSVData.objects.filter(column_id=current_file.id)
+
+        data_list = [column.column_data for column in current_file_data]
+        sorted_data_list = list(sorted(data_list, key=lambda x: x.split(",")[column_id]))
+        return HttpResponse(f"<h1>{sorted_data_list}<h1>")
+
+
 def main_page(request):
+    """Представление для главной страницы"""
+
     return render(request, "main_page.html")
