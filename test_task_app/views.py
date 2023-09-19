@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponsePermanentRedirect
+from django.http import HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views import View
@@ -27,21 +27,20 @@ class CsvView(View):
                 return render(request, "download_error.html")
             decoded_content = download.content.decode('utf-8')
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
-            my_list = list(cr)
-            # column_names = ",".join(my_list[0])
+            data_list = list(cr)
 
             # fixme: CSVFiles.objects.all().delete()
 
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return render(request, "already_exist.html")
 
-            csv_file = CSVFiles.objects.create(file_name=name, file_url=url, file_column_name=my_list[0])
-            for i, column in enumerate(my_list[1:]):
-                CSVData.objects.create(column_id=csv_file, column_data=",".join(column), id=i + 1)
+            csv_file = CSVFiles.objects.create(file_name=name, file_url=url, file_column_name=" , ".join(data_list[0]))
+            for i, column in enumerate(data_list[1:]):
+                CSVData.objects.create(column_id=csv_file, column_data=" , ".join(column), id=i + 1)
 
             # split_column_name = column_names.split(",")
 
-            return HttpResponse(f"<h1>Файл {name} скачан<h1>")
+            return render(request, "successful_download.html")
 
 
 class GetCsvView(View):
@@ -62,10 +61,11 @@ class GetCsvView(View):
         except:
             return render(request, "file_not_found.html")
 
-        print(current_file.file_name, current_file.file_column_name, current_file.file_url)
         for i in current_file_data:
             print(i.column_data)
-        return HttpResponse("<h1>PASS<h1>")
+
+        return render(request, "csv_file_data.html", {"file_info": current_file,
+                                                      "file_data": current_file_data})
 
 
 class DeleteCsvView(View):
@@ -106,7 +106,7 @@ class LoginView(View):
             print(users.username, users.email, users.email)
         except User.DoesNotExist:
             return render(request, "authorization_fail.html")
-        return HttpResponsePermanentRedirect("/index")
+        return HttpResponseRedirect("/index")
 
 
 class RegisterView(View):
@@ -128,7 +128,7 @@ class RegisterView(View):
         if User.objects.filter(Q(username=login) | Q(email=email)).exists():
             return render(request, "registration_fail.html")
         User.objects.create(username=login, password=password, email=email)
-        return HttpResponsePermanentRedirect('/login')
+        return HttpResponseRedirect('/login')
 
 
 def main_page(request):
