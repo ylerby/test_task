@@ -1,12 +1,13 @@
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponsePermanentRedirect
+from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views import View
 from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, DeleteCsvForm
 import csv
 import requests
 
-from test_task_app.models import User, CSVFiles, CSVData
+from test_task_app.models import CSVFiles, CSVData
 
 
 class CsvView(View):
@@ -22,12 +23,12 @@ class CsvView(View):
         with requests.Session() as s:
             try:
                 download = s.get(url)
-            except ConnectionError:
-                return HttpResponse(f"<h1>Ошибка получения файла!")
+            except:
+                return render(request, "download_error.html")
             decoded_content = download.content.decode('utf-8')
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             my_list = list(cr)
-            column_names = ",".join(my_list[0])
+            # column_names = ",".join(my_list[0])
 
             # fixme: CSVFiles.objects.all().delete()
 
@@ -38,9 +39,9 @@ class CsvView(View):
             for i, column in enumerate(my_list[1:]):
                 CSVData.objects.create(column_id=csv_file, column_data=",".join(column), id=i + 1)
 
-            split_column_name = column_names.split(",")
+            # split_column_name = column_names.split(",")
 
-            return HttpResponse(f"<h1>{name}<h1>{split_column_name}")
+            return HttpResponse(f"<h1>Файл {name} скачан<h1>")
 
 
 class GetCsvView(View):
@@ -101,8 +102,8 @@ class LoginView(View):
         password: str = request.POST.get("password", None)
 
         try:
-            users = User.objects.get(login=login, password=password)
-            print(users.login, users.email, users.email)
+            users = User.objects.get(username=login, password=password)
+            print(users.username, users.email, users.email)
         except User.DoesNotExist:
             return render(request, "authorization_fail.html")
         return HttpResponsePermanentRedirect("/index")
@@ -120,12 +121,13 @@ class RegisterView(View):
         password = request.POST.get("password", None)
 
         # todo:решить проблему с повторяющимися паролями
-        # again_password = request.POST.get("again_password", None)
+        again_password = request.POST.get("again_password", None)
         email = request.POST.get("email", None)
-
-        if User.objects.filter(Q(login=login) | Q(email=email)).exists():
+        if password != again_password:
+            return HttpResponse("<h1>Пароли не совпадают<h1>")
+        if User.objects.filter(Q(username=login) | Q(email=email)).exists():
             return render(request, "registration_fail.html")
-        User.objects.create(login=login, password=password, email=email)
+        User.objects.create(username=login, password=password, email=email)
         return HttpResponsePermanentRedirect('/login')
 
 
