@@ -24,12 +24,12 @@
 <body>
     <h1>Содержание файла {{ file_info.file_name }}</h1>
     <h3>Данные:</h3>
+    <h4>{{ file_info.file_column_name }}</h4>
     <table>
         <tbody>
-            <th>{{ file_info.file_column_name }}</th>
             {% for data in file_data %}
             <tr>
-                <td>{{ data.column_data }}</td>
+                <li>{{ data.column_data }}</li>
             </tr>
             {% endfor %}
         </tbody>
