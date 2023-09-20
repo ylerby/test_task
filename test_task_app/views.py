@@ -52,7 +52,6 @@ class GetCsvView(View):
         get_csv_form = GetCsvForm()
         return render(request, "get_csv_file.html", {"form": get_csv_form})
 
-    # todo: заменить column_id на csv_file id
     @staticmethod
     def post(request):
         csv_file_name: str = request.POST.get("file_name", None)
@@ -128,11 +127,10 @@ class RegisterView(View):
         login = request.POST.get("login", None)
         password = request.POST.get("password", None)
 
-        # todo:решить проблему с повторяющимися паролями
         again_password = request.POST.get("again_password", None)
         email = request.POST.get("email", None)
         if password != again_password:
-            return HttpResponse("<h1>Пароли не совпадают<h1>")
+            return render(request, "password_mismatch.html")
         if User.objects.filter(Q(username=login) | Q(email=email)).exists():
             return render(request, "registration_fail.html")
         User.objects.create(username=login, password=password, email=email)

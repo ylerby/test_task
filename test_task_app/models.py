@@ -9,7 +9,14 @@ class CSVFiles(models.Model):
 
 class CSVData(models.Model):
     column_id = models.ForeignKey(CSVFiles, on_delete=models.CASCADE)
-    column_data = models.CharField(max_length=255)
+    column_data = models.CharField()
+'''
+
+class ColumnData(models.Model):
+    # file_id
+    # col_id
+    # raw_id
+    # data '''
 
 
 '''class CSVFileInfo(models.Model):
