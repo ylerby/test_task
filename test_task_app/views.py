@@ -1,10 +1,10 @@
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views import View
 from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, DeleteCsvForm, FileSortingForm
-from test_task_app.models import CSVFiles, CSVData
+from test_task_app.models import CSVFiles, ColumnData
 import csv
 import requests
 
@@ -30,6 +30,11 @@ class CsvView(View):
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             data_list = list(cr)
 
+            #print(data_list)
+
+            '''CSVFiles.objects.all().delete()
+            ColumnData.objects.all().delete()'''
+
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return render(request, "already_exist.html")
 
@@ -37,10 +42,12 @@ class CsvView(View):
             # fixme: файл скачивается, но выводится сообщение "файл уже существует"
             # fixme: ПРОБЛЕМА С ОГРАНИЧЕНИЕМ НА СИМВОЛЫ
 
-            csv_file = CSVFiles.objects.create(file_name=name, file_url=url, file_column_name=" , ".join(data_list[0]))
-            for i, column in enumerate(data_list[1:]):
-                CSVData.objects.create(column_id=csv_file, column_data=" , ".join(column))
+            csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
 
+            for i, column in enumerate(data_list):
+                for j in range(len(data_list[0])):
+                    if len(column) == len(data_list[0]):
+                        ColumnData.objects.create(col_id=j, raw_id=i, data=column[j], file_id_id=csv_file.id)
             return render(request, "successful_download.html")
 
 
@@ -58,15 +65,29 @@ class GetCsvView(View):
 
         try:
             current_file = CSVFiles.objects.get(file_name=csv_file_name)
-            current_file_data = CSVData.objects.filter(column_id=current_file)
+            current_file_data = ColumnData.objects.filter(file_id_id=current_file)
         except:
             return render(request, "file_not_found.html")
 
-        for i in current_file_data:
-            print(i.column_data)
+        length: int = 0
+
+        # todo: ограничить число итераций
+        for column in current_file_data:
+            if int(column.raw_id) > length:
+                length = int(column.raw_id)
+
+        full_data = []
+        data = []
+
+        for column in current_file_data:
+            data.append(column.data)
+            if column.col_id == length-1:
+                full_data.append(", ".join(data))
+                data = []
+                continue
 
         return render(request, "csv_file_data.html", {"file_info": current_file,
-                                                      "file_data": current_file_data})
+                                                      "file_data": full_data})
 
 
 class DeleteCsvView(View):
@@ -83,7 +104,7 @@ class DeleteCsvView(View):
 
         try:
             current_file = CSVFiles.objects.get(file_name=csv_file_name).delete()
-            CSVData.objects.filter(column_id=current_file).delete()
+            ColumnData.objects.filter(file_id_id=current_file).delete()
             return render(request, "successful_delete.html")
         except:
             return render(request, "file_not_found.html")
@@ -136,7 +157,7 @@ class RegisterView(View):
         User.objects.create(username=login, password=password, email=email)
         return HttpResponseRedirect('/login')
 
-
+'''
 class FileSorting(View):
     """Класс-представление для """
 
@@ -165,7 +186,7 @@ class FileSorting(View):
 
         sorted_data_list = list(sorted(data_list, key=lambda x: x.split(",")[column_id]))
         return render(request, "sorted_csv_file.html", {"data": sorted_data_list,
-                                                        "column_name": current_file_column})
+                                                        "column_name": current_file_column})'''
 
 
 def main_page(request):
