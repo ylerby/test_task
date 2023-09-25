@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
@@ -29,11 +31,6 @@ class CsvView(View):
             decoded_content = download.content.decode('utf-8')
             cr = csv.reader(decoded_content.splitlines(), delimiter=',')
             data_list = list(cr)
-
-            #print(data_list)
-
-            '''CSVFiles.objects.all().delete()
-            ColumnData.objects.all().delete()'''
 
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return render(request, "already_exist.html")
@@ -172,11 +169,7 @@ class FileSorting(View):
 
 
         # fixme: вынести в отдельную функцию
-        length: int = 0
-
-        for column in current_file_data:
-            if int(column.col_id) > length:
-                length = int(column.col_id)
+        length = get_line_length(current_file_data)
 
         return render(request, "file_sorting.html", {"form": file_sorting_form,
                                                      "number_of_columns": length})
@@ -189,11 +182,7 @@ class FileSorting(View):
         current_file = CSVFiles.objects.get(file_name=current_file_name)
         current_file_data = ColumnData.objects.filter(file_id_id=current_file.id)
 
-        length: int = 0
-
-        for column in current_file_data:
-            if int(column.col_id) > length:
-                length = int(column.col_id)
+        length = get_line_length(current_file_data)
 
         full_data = []
         data = []
@@ -217,3 +206,25 @@ def main_page(request):
     """Представление для главной страницы"""
 
     return render(request, "main_page.html")
+
+
+def get_line_length(data: Iterable) -> int:
+    length: int = 0
+    for column in data:
+        if int(column.col_id) > length:
+            length = int(column.col_id)
+    return length
+
+
+def get_all_files(request):
+    data = ColumnData.objects.all()
+    file_set: set = set()
+
+    for column in data:
+        file_set.add(column.file_id_id)
+
+    # fixme: сделать заполнение словаря
+    separated_data = {file_number: [column.data for column in data if file_number == column.file_id_id]
+                      for file_number in file_set}
+
+    return HttpResponse("<h1>pass<h1>")

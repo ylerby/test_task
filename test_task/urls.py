@@ -7,6 +7,7 @@ urlpatterns = [
     path('get_csv_file', views.GetCsvView.as_view()),
     path('file_sorting/', views.FileSorting.as_view()),
     path('delete_csv_file', views.DeleteCsvView.as_view()),
+    path('get_all_files', views.get_all_files),
     path('', views.main_page),
     path('login', views.LoginView.as_view()),
     path('register', views.RegisterView.as_view()),
