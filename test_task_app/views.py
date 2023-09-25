@@ -73,15 +73,16 @@ class GetCsvView(View):
 
         # todo: ограничить число итераций
         for column in current_file_data:
-            if int(column.raw_id) > length:
-                length = int(column.raw_id)
+            if int(column.col_id) > length:
+                length = int(column.col_id)
 
         full_data = []
         data = []
 
+        # fixme: некорректное отображение первого кортежа
         for column in current_file_data:
             data.append(column.data)
-            if column.col_id == length-1:
+            if column.col_id == length:
                 full_data.append(", ".join(data))
                 data = []
                 continue
@@ -157,7 +158,7 @@ class RegisterView(View):
         User.objects.create(username=login, password=password, email=email)
         return HttpResponseRedirect('/login')
 
-'''
+
 class FileSorting(View):
     """Класс-представление для """
 
@@ -167,11 +168,18 @@ class FileSorting(View):
 
         current_file_name = request.GET.get("file_name")
         current_file = CSVFiles.objects.get(file_name=current_file_name)
+        current_file_data = ColumnData.objects.filter(file_id_id=current_file.id)
 
-        number_of_columns = len(current_file.file_column_name.split(sep=',')) - 1
+
+        # fixme: вынести в отдельную функцию
+        length: int = 0
+
+        for column in current_file_data:
+            if int(column.col_id) > length:
+                length = int(column.col_id)
 
         return render(request, "file_sorting.html", {"form": file_sorting_form,
-                                                     "number_of_columns": number_of_columns})
+                                                     "number_of_columns": length})
 
     @staticmethod
     def post(request):
@@ -179,14 +187,30 @@ class FileSorting(View):
         current_file_name = request.GET.get("file_name")
 
         current_file = CSVFiles.objects.get(file_name=current_file_name)
-        current_file_data = CSVData.objects.filter(column_id=current_file.id)
+        current_file_data = ColumnData.objects.filter(file_id_id=current_file.id)
 
-        current_file_column = current_file.file_column_name.split(sep=",")[column_id]
-        data_list = [column.column_data for column in current_file_data]
+        length: int = 0
 
-        sorted_data_list = list(sorted(data_list, key=lambda x: x.split(",")[column_id]))
-        return render(request, "sorted_csv_file.html", {"data": sorted_data_list,
-                                                        "column_name": current_file_column})'''
+        for column in current_file_data:
+            if int(column.col_id) > length:
+                length = int(column.col_id)
+
+        full_data = []
+        data = []
+
+        # fixme: некорректное отображение первого кортежа
+        for column in current_file_data:
+            data.append(column.data)
+            if column.col_id == length:
+                full_data.append(", ".join(data))
+                data = []
+                continue
+
+        '''current_file_column = current_file.file_column_name.split(sep=",")[column_id]
+        data_list = [column.column_data for column in current_file_data]'''
+
+        sorted_data_list = list(sorted(full_data, key=lambda x: x.split(",")[column_id]))
+        return render(request, "sorted_csv_file.html", {"data": sorted_data_list})
 
 
 def main_page(request):
