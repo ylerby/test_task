@@ -28,10 +28,6 @@ class RegisterForm(forms.Form):
                                help_text="Введите пароль",
                                required=True,
                                widget=forms.PasswordInput)
-    password_again = forms.CharField(label="Повторение пароля",
-                                     help_text="Повторите пароль",
-                                     required=True,
-                                     widget=forms.PasswordInput)
     email = forms.EmailField(label="Электронная почта",
                              help_text="Введите электронную почту",
                              required=True,

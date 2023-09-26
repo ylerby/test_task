@@ -63,13 +63,12 @@ WSGI_APPLICATION = 'test_task.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-#todo:ИЗМЕНИТЬ ПАРОЛЬ ОТ POSTGRESQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_task',
+        'NAME': '<db_name>',
         'USER': 'postgres',
-        'PASSWORD': 'Ma07243aM',
+        'PASSWORD': '<password>',
         'HOST': 'localhost',
         'PORT': 5432,
     }

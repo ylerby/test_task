@@ -126,11 +126,8 @@ class RegisterView(View):
     def post(request):
         login = request.POST.get("login", None)
         password = request.POST.get("password", None)
-
-        again_password = request.POST.get("again_password", None)
         email = request.POST.get("email", None)
-        if password != again_password:
-            return render(request, "password_mismatch.html")
+
         if User.objects.filter(Q(username=login) | Q(email=email)).exists():
             return render(request, "registration_fail.html")
         User.objects.create(username=login, password=password, email=email)

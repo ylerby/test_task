@@ -8,6 +8,14 @@
             background-color: #f1f1f1;
             font-family: Arial, sans-serif;
         }
+        .buttn {
+            display: inline-block;
+            background: #472486;
+            color: #ffffff;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            border-radius: 3px;
+        }
         .container {
             display: flex;
             flex-direction: column;
@@ -37,6 +45,9 @@
         }
     </style>
 </head>
+<div>
+    <a href="/index" class="buttn">Главная</a>
+</div>
 <body>
     <form method="post">
         {% csrf_token %}
