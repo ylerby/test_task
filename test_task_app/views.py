@@ -8,7 +8,6 @@ from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, De
 from test_task_app.models import CSVFiles, ColumnData
 import csv
 import requests
-import pandas as pd
 
 
 class CsvView(View):
@@ -34,10 +33,6 @@ class CsvView(View):
 
             if CSVFiles.objects.filter(Q(file_name=name) | Q(file_url=url)).exists():
                 return render(request, "already_exist.html")
-
-            # TODO: ИЗМЕНИТЬ ИНКРЕМЕНТАЦИЮ ID
-            # fixme: файл скачивается, но выводится сообщение "файл уже существует"
-            # fixme: ПРОБЛЕМА С ОГРАНИЧЕНИЕМ НА СИМВОЛЫ
 
             csv_file = CSVFiles.objects.create(file_name=name, file_url=url)
 
@@ -68,16 +63,7 @@ class GetCsvView(View):
 
         length: int = get_line_length(current_file_data)
 
-        full_data = []
-        data = []
-
-        # fixme: некорректное отображение первого кортежа
-        for column in current_file_data:
-            data.append(column.data)
-            if column.col_id == length:
-                full_data.append(", ".join(data))
-                data = []
-                continue
+        full_data = get_full_data(length, current_file_data)
 
         return render(request, "csv_file_data.html", {"file_info": current_file,
                                                       "file_data": full_data})
@@ -162,7 +148,6 @@ class FileSorting(View):
         current_file = CSVFiles.objects.get(file_name=current_file_name)
         current_file_data = ColumnData.objects.filter(file_id_id=current_file.id)
 
-        # fixme: вынести в отдельную функцию
         length = get_line_length(current_file_data)
 
         return render(request, "file_sorting.html", {"form": file_sorting_form,
@@ -178,19 +163,7 @@ class FileSorting(View):
 
         length = get_line_length(current_file_data)
 
-        full_data = []
-        data = []
-
-        # fixme: некорректное отображение первого кортежа
-        for column in current_file_data:
-            data.append(column.data)
-            if column.col_id == length:
-                full_data.append(", ".join(data))
-                data = []
-                continue
-
-        '''current_file_column = current_file.file_column_name.split(sep=",")[column_id]
-        data_list = [column.column_data for column in current_file_data]'''
+        full_data = get_full_data(length, current_file_data)
 
         sorted_data_list = list(sorted(full_data, key=lambda x: x.split(",")[column_id]))
         return render(request, "sorted_csv_file.html", {"data": sorted_data_list})
@@ -212,16 +185,32 @@ def get_line_length(data: Iterable) -> int:
     return length
 
 
+def get_full_data(length: int, current_file_data: Iterable) -> list:
+    """Получение списка со всеми данными из csv файла"""
+
+    full_data = []
+    data = []
+
+    for column in current_file_data:
+        data.append(column.data)
+        if column.col_id == length:
+            full_data.append(", ".join(data))
+            data = []
+            continue
+
+    return full_data
+
+
 def get_all_files(request):
+    """Получение списка со всеми данными из csv файла"""
+
     data = ColumnData.objects.all()
     file_set: set = set()
 
     for column in data:
         file_set.add(column.file_id_id)
 
-    separated_data = {file_number: " ".join([column.data for column in data if file_number == column.file_id_id]) for
+    separated_data = {file_number: [column.data for column in data if file_number == column.file_id_id] for
                       file_number in file_set}
 
-    df = pd.DataFrame(separated_data)
-
-    return render(request, "all_files_data.html", {"data": df})
+    return render(request, "all_files_data.html", {"data": separated_data})
