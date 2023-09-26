@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Содержание файла</title>
+    <style>
+        .buttn {
+            display: inline-block;
+            background: #472486;
+            color: #ffffff;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+        body {
+            background-color: #f1f1f1;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<div>
+    <a href="/index" class="buttn">Главная</a>
+</div>
+<body>
+    <h3>Данные:</h3>
+    <table>
+        <tbody>
+            {% for file in data.values %}
+            <tr>
+                <li>{{ data}}</li>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

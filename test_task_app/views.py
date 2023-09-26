@@ -1,5 +1,4 @@
 from typing import Iterable
-
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
@@ -9,6 +8,7 @@ from test_task_app.forms import UrlForm, LoginForm, RegisterForm, GetCsvForm, De
 from test_task_app.models import CSVFiles, ColumnData
 import csv
 import requests
+import pandas as pd
 
 
 class CsvView(View):
@@ -66,12 +66,7 @@ class GetCsvView(View):
         except:
             return render(request, "file_not_found.html")
 
-        length: int = 0
-
-        # todo: ограничить число итераций
-        for column in current_file_data:
-            if int(column.col_id) > length:
-                length = int(column.col_id)
+        length: int = get_line_length(current_file_data)
 
         full_data = []
         data = []
@@ -108,7 +103,7 @@ class DeleteCsvView(View):
             return render(request, "file_not_found.html")
 
 
-def index(request):
+def index(request) -> HttpResponse:
     return render(request, "index.html")
 
 
@@ -167,7 +162,6 @@ class FileSorting(View):
         current_file = CSVFiles.objects.get(file_name=current_file_name)
         current_file_data = ColumnData.objects.filter(file_id_id=current_file.id)
 
-
         # fixme: вынести в отдельную функцию
         length = get_line_length(current_file_data)
 
@@ -202,13 +196,15 @@ class FileSorting(View):
         return render(request, "sorted_csv_file.html", {"data": sorted_data_list})
 
 
-def main_page(request):
+def main_page(request) -> HttpResponse:
     """Представление для главной страницы"""
 
     return render(request, "main_page.html")
 
 
 def get_line_length(data: Iterable) -> int:
+    """Получение длины кортежа"""
+
     length: int = 0
     for column in data:
         if int(column.col_id) > length:
@@ -223,8 +219,9 @@ def get_all_files(request):
     for column in data:
         file_set.add(column.file_id_id)
 
-    # fixme: сделать заполнение словаря
-    separated_data = {file_number: [column.data for column in data if file_number == column.file_id_id]
-                      for file_number in file_set}
+    separated_data = {file_number: " ".join([column.data for column in data if file_number == column.file_id_id]) for
+                      file_number in file_set}
 
-    return HttpResponse("<h1>pass<h1>")
+    df = pd.DataFrame(separated_data)
+
+    return render(request, "all_files_data.html", {"data": df})
